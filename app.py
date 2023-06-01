@@ -1,4 +1,5 @@
 import os
+import pandas as pd
 import openai
 from openai.embeddings_utils import distances_from_embeddings
 
@@ -7,6 +8,7 @@ from flask import (Flask, redirect, render_template, request,
 
 app = Flask(__name__)
 
+root_dir = "c:\\Users\\burak.yucelyigit\\OneDrive\\kisisel\Yazılım\\openai\\crawler\\SemanticCatalogSearch\\"
 
 @app.route('/')
 def index():
