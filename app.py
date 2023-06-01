@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import pandas as pd
 import openai
 from openai.embeddings_utils import distances_from_embeddings
