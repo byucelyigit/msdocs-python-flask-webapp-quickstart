@@ -1,14 +1,9 @@
 import os
-import pandas as pd
-import openai
-from openai.embeddings_utils import distances_from_embeddings
 
 from flask import (Flask, redirect, render_template, request,
                    send_from_directory, url_for)
 
 app = Flask(__name__)
-
-root_dir = "c:\\Users\\burak.yucelyigit\\OneDrive\\kisisel\Yazılım\\openai\\crawler\\SemanticCatalogSearch\\"
 
 @app.route('/')
 def index():
@@ -31,22 +26,6 @@ def hello():
        print('Request for hello page received with no name or blank name -- redirecting')
        return redirect(url_for('index'))
 
-
-def SortedList(question, top):
-    df_embeddings = pd.read_csv(root_dir + 'embeddings_eng.csv')    
-    q_embeddings = openai.Embedding.create(input=question, engine='text-embedding-ada-002')['data'][0]['embedding']
-
-    # code takes the 'embedding' column in df (which contains strings representing arrays of numbers) and converts each string to a NumPy array, which is then stored in a new column called 'embedding_values'.
-    df_embeddings['embedding_values'] = df_embeddings.embedding.apply(eval).apply(np.array)
-    # Get the distances from the embeddings
-    df_embeddings['distances'] = distances_from_embeddings(q_embeddings, df_embeddings['embedding_values'].values, distance_metric='cosine')    
-
-    # sort values ascending. smallest distance is at top
-    df_sorted = df_embeddings.sort_values('distances')
-    # top n value from df_sorted
-    df_top_n = df_sorted.iloc[0:top]
-    # first_row_sorted = df_sorted.iloc[0]
-    return df_top_n
 
 def ReturnSomething():
     return "result"
