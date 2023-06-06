@@ -164,13 +164,9 @@ def deletemongodbrecords():
     return
 
 def searchmongodb():
-    #  aşağıdaki aslında çalışıyor ama
-    # bütün kayıtları dönüyor. bunun sebebi indexin 3 embeddings
-    # elemanı için tanımlanmış olması ama 
-    # benim openai'dan gelen 1500 elemanı var.
-    # şimdi kayıtları silip 3 elemanlı kayıtlar oluşturmaya çalışıyorum.
-    # Connect to the Cosmos DB using the Azure Cosmos Client
-    # client = cosmos_client.CosmosClient(HOST, {'masterKey': MASTER_KEY}, user_agent="CosmosDBPythonQuickstart", user_agent_overwrite=True)
+    # vektör araması çalışan versiyon
+    # index oluşturma işlemi javascript playground ile yapıldı.
+    
     client = pymongo.MongoClient('mongodb+srv://byucelyigit:burak123A@vectormongo.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000')
     db = client.get_database('samplemongodb')
     collection = db['exampleCollection']
@@ -205,6 +201,7 @@ def searchmongodb():
 
 # ExportEmbeddings()
 # ReadEmbeddingsFromCosmoDB()  # nosql için  >700 maddeyi çekmesi epey vakit alıyor. mongodb içn biraz daha hızlı 
+
 searchmongodb()
 # createmongodbvectorindex()
 # deletemongodbrecords()
