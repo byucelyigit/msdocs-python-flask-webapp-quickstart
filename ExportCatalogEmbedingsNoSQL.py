@@ -200,17 +200,19 @@ def ExportEmbeddings():
     embeddingList = ReadEmbeddings()
     CreateEmbedingItems(embeddingList) 
 
+# burada bir hata oluştu. vektör bilgisi rakam olarak değil de string olarak girilmiş oldu. bunu düzeltmek lazım. 
 def CreateEmbedingItems(embeddingList):
     client = pymongo.MongoClient('mongodb+srv://byucelyigit:burak123A@vectormongo.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000')
     db = client.get_database('EnoctaEmbeddings')
     # collection = db['Catalog']
-    limited_df = embeddingList.head(5)
-    for index, row in limited_df.iterrows():
+    # limited_df = embeddingList.head(5)
+    for index, row in embeddingList.iterrows():
         # convert index into a string
-        i = str(index)
+        i = str(index+1)
+        print("index:") 
         print(i)
         embeding = EmbeddingItem(i, row['embedding'])
-        db.Catalog.insertOne(body=embeding)
+        db.Catalog.insert_one(embeding)
         print("item created")
 
 def EmbeddingItem(index, embedding):
@@ -224,7 +226,7 @@ def searchmongodb():
 
     client = pymongo.MongoClient('mongodb+srv://byucelyigit:burak123A@vectormongo.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000')
     db = client.get_database('EnoctaEmbeddings')
-    collection = db['exampleCollection']
+    # collection = db['exampleCollection']
     # client = cosmos_client()
 
     # db = client.samplemongodb.
@@ -250,11 +252,13 @@ def searchmongodb():
 
     result = db.Catalog.aggregate(pipeline)
     # Print the result
+    print("Search resut:")
     for document in result:
         print(document)
 
 
-# ExportEmbeddings()
+# Export olan komut bir kez çalıştırılır.
+# ExportEmbeddings()  
 # ReadEmbeddingsFromCosmoDB()  # nosql için  >700 maddeyi çekmesi epey vakit alıyor. mongodb içn biraz daha hızlı 
 
 searchmongodb()
