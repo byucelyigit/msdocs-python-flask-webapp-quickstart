@@ -182,7 +182,7 @@ def searchmongodb():
     # container = db.get_container_client("vectors")
 
     # Define the query vector
-    queryVector = [0.52, 0.28, 0.12]
+    queryVector = [0.91, 0.76, 0.83]
 
     pipeline = [
         {
@@ -197,7 +197,7 @@ def searchmongodb():
         }
     ]
 
-    result = collection.aggregate(pipeline)
+    result = db.exampleCollection.aggregate(pipeline)
     # Print the result
     for document in result:
         print(document)
