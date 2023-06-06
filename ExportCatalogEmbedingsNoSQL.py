@@ -6,6 +6,7 @@ import azure.cosmos.exceptions as exceptions
 from azure.cosmos.partition_key import PartitionKey
 import datetime
 import config
+import pymongo
 
 # Bu uygulama CosmosDB'ye veri ekleme işlemini gerçekleştirmektedir.
 # komut satırından bir kez çalıştırılır.
@@ -14,14 +15,16 @@ import config
 settings = {
     'host': os.environ.get('ACCOUNT_HOST', 'https://aiexperiment.documents.azure.com:443/'),
     'master_key': os.environ.get('ACCOUNT_KEY', 'osGQ0NoqEDvY2gjfyn8fMeeA388AZzA1NVOiDxpDRSdrNnNJgg3bX90BsVrXf7FFlXZY9kkbc3N1HVx0HpU8VA=='),
-    'database_id': os.environ.get('COSMOS_DATABASE', 'ToDoList'),
-    'container_id': os.environ.get('COSMOS_CONTAINER', 'Items'),
+    'database_id': os.environ.get('COSMOS_DATABASE', 'samplemongodb'),
+    'container_id': os.environ.get('COSMOS_CONTAINER', 'vectors'),
+    'collection_id': os.environ.get('COSMOS_COLLECTION', 'exampleCollection'),
 }
 
 HOST = config.settings['host']
 MASTER_KEY = config.settings['master_key']
 DATABASE_ID = config.settings['database_id']
 CONTAINER_ID = config.settings['container_id']
+COLLECTION_ID = config.settings['collection_id']
 
 def Item(item_id, name):
     order1 = {'id' : item_id,
@@ -104,7 +107,106 @@ def query_items(id):
 
     print('Item queried by id  {0}'.format(items[0].get("id")))
 
+def createvectorindex():
+    client = cosmos_client.CosmosClient(HOST, {'masterKey': MASTER_KEY}, user_agent="CosmosDBPythonQuickstart", user_agent_overwrite=True)
+    db = client.get_database_client(DATABASE_ID)
+    json = {'createIndexes' : 'exampleCollection',
+            'indexes': [
+                {
+                'name': 'vectorSearchIndex',
+                'key': {
+                    "vectorContent": "cosmosSearch"
+                },
+                'cosmosSearchOptions': {
+                    'kind': 'vector-ivf',
+                    'numLists': 100,
+                    'similarity': 'COS',
+                    'dimensions': 3
+                }
+                }
+            ]
+            }
+    
+    db.createindexes(json)
+    return
+
+def createmongodbvectorindex():
+    # Connect to the Cosmos DB using the Azure Cosmos Client
+    client = cosmos_client.CosmosClient(HOST, {'masterKey': MASTER_KEY}, user_agent="CosmosDBPythonQuickstart", user_agent_overwrite=True)
+    db = client.get_database_client(DATABASE_ID)
+    container = db.get_container_client("vectors")  
+    # Define the index to be created
+    index_name = "vectorSearchIndex"
+    index_key = [("vectorContent", "cosmosSearch")]
+    index_options = {
+        "kind": "vector-ivf",
+        "numLists": 100,
+        "similarity": "COS",
+        "dimensions": 3
+    }
+    container.createIndex(index_key, name=index_name, options=index_options)
+    print("Index created successfully")
+
+def deletemongodbrecords():
+    # Connect to the Cosmos DB using the Azure Cosmos Client
+    client = cosmos_client.CosmosClient(HOST, {'masterKey': MASTER_KEY}, user_agent="CosmosDBPythonQuickstart", user_agent_overwrite=True)
+    db = client.get_database_client(DATABASE_ID)
+    container = db.get_container_client("vectors")  
+    # Delete all records in the collection
+    query = "SELECT * FROM c"
+    result = container.query_items(query, enable_cross_partition_query=True)
+
+    for document in result:
+        print(document['id'])        
+        container.delete_item(item="1", partition_key="/")    
+
+    print("Deleted:", result.deleted_count)
+    return
+
+def searchmongodb():
+    #  aşağıdaki aslında çalışıyor ama
+    # bütün kayıtları dönüyor. bunun sebebi indexin 3 embeddings
+    # elemanı için tanımlanmış olması ama 
+    # benim openai'dan gelen 1500 elemanı var.
+    # şimdi kayıtları silip 3 elemanlı kayıtlar oluşturmaya çalışıyorum.
+    # Connect to the Cosmos DB using the Azure Cosmos Client
+    # client = cosmos_client.CosmosClient(HOST, {'masterKey': MASTER_KEY}, user_agent="CosmosDBPythonQuickstart", user_agent_overwrite=True)
+    client = pymongo.MongoClient('mongodb+srv://byucelyigit:burak123A@vectormongo.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000')
+    db = client.get_database('samplemongodb')
+    collection = db['exampleCollection']
+    # client = cosmos_client()
+
+    # db = client.samplemongodb.
+    # 
+
+    # container = db.get_container_client("vectors")
+
+    # Define the query vector
+    queryVector = [0.52, 0.28, 0.12]
+
+    pipeline = [
+        {
+            "$search": {
+                "cosmosSearch": {
+                    "vector": queryVector,
+                    "path": "vectorContent",
+                    "k": 2
+                },
+                "returnStoredSource": True
+            }
+        }
+    ]
+
+    result = collection.aggregate(pipeline)
+    # Print the result
+    for document in result:
+        print(document)
+
 
 # ExportEmbeddings()
-# ReadEmbeddingsFromCosmoDB()  # >700 maddeyi çekmesi epey vakit alıyor.
-query_items("1")
+# ReadEmbeddingsFromCosmoDB()  # nosql için  >700 maddeyi çekmesi epey vakit alıyor. mongodb içn biraz daha hızlı 
+searchmongodb()
+# createmongodbvectorindex()
+# deletemongodbrecords()
+# query_items("1")
+# createvectorindex()

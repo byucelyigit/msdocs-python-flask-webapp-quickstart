@@ -37,6 +37,7 @@ def read_items(container):
 
     for doc in item_list:
         print('Item Id: {0}'.format(doc.get('id')))
+    return
 
 
 def query_items(container, account_number):
@@ -49,8 +50,10 @@ def query_items(container, account_number):
             { "name":"@account_number", "value": account_number }
         ]
     ))
-
     print('Item queried by Partition Key {0}'.format(items[0].get("id")))
+    return
+
+
 
 
 def run_sample():
@@ -59,6 +62,8 @@ def run_sample():
         db = client.get_database_client(DATABASE_ID)
         container = db.get_container_client(CONTAINER_ID)
         read_items(container)
+
+
     except exceptions.CosmosHttpResponseError as e:
         print('\nrun_sample has caught an error. {0}'.format(e.message))
     finally:

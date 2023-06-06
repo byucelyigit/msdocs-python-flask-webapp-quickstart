@@ -17,3 +17,5 @@ six==1.13.0
 urllib3==1.25.7
 virtualenv==16.7.9
 virtualenv-clone==0.5.3
+pymongo==4.3.3
+python-dotenv
