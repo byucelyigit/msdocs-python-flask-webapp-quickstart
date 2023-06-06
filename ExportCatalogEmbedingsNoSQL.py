@@ -12,6 +12,17 @@ import pymongo
 # komut satırından bir kez çalıştırılır.
 # demelerde nosql vector verilerinin gönderilmesi ve alınması (özellikle alınması) konusunda çok yavaş kaldı.
 
+# https://learn.microsoft.com/en-us/azure/cosmos-db/mongodb/vcore/vector-search
+# yukarıdaki adresteki javascript komutları
+# mongodb üzerinde çalıştırılır.
+# bunun en kolay yolu şimdiye kadar bulduğum:
+# vscode mongodb plugini yapmak. bunun playground
+# fonskiyonunu kullanmak. 
+# azure mongodb arayüzünde verileri gösteren bir yer yok
+# yine mongodb plugin üzerinden verileri ve indexleri de görmek mümkün.
+
+
+
 settings = {
     'host': os.environ.get('ACCOUNT_HOST', 'https://aiexperiment.documents.azure.com:443/'),
     'master_key': os.environ.get('ACCOUNT_KEY', 'osGQ0NoqEDvY2gjfyn8fMeeA388AZzA1NVOiDxpDRSdrNnNJgg3bX90BsVrXf7FFlXZY9kkbc3N1HVx0HpU8VA=='),
@@ -166,7 +177,7 @@ def deletemongodbrecords():
 def searchmongodb():
     # vektör araması çalışan versiyon
     # index oluşturma işlemi javascript playground ile yapıldı.
-    
+
     client = pymongo.MongoClient('mongodb+srv://byucelyigit:burak123A@vectormongo.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000')
     db = client.get_database('samplemongodb')
     collection = db['exampleCollection']
