@@ -8,6 +8,11 @@ import datetime
 import config
 import pymongo
 
+
+# development amacı ile kaynakları oluşturma ve silme rutinlerini ekleyerek
+# maliyetleri süper azaltmak mümkün olabilir.
+# yarın buna bakmam laızm. 
+# prod tarafında tabibu çok mümkün olmayacaktır. 
 # Bu uygulama CosmosDB'ye veri ekleme işlemini gerçekleştirmektedir.
 # komut satırından bir kez çalıştırılır.
 # demelerde nosql vector verilerinin gönderilmesi ve alınması (özellikle alınması) konusunda çok yavaş kaldı.
@@ -181,7 +186,10 @@ def deletemongodbrecords():
     print("Deleted:", result.deleted_count)
     return
 
-
+def CreateDatabase():
+    client = pymongo.MongoClient('mongodb+srv://byucelyigit:burak123A@vectormongo.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000')
+    db=client['EnoctaEmbeddings']
+    db.create_collection('vectors')
 
 
 def ReadEmbeddings():
@@ -257,11 +265,17 @@ def searchmongodb():
         print(document)
 
 
-# Export olan komut bir kez çalıştırılır.
-# ExportEmbeddings()  
-# ReadEmbeddingsFromCosmoDB()  # nosql için  >700 maddeyi çekmesi epey vakit alıyor. mongodb içn biraz daha hızlı 
+# --------------------------------------------
+# aşağıdaki işlemlerden önce ilgili azure resource tanımlarının yapılmış olması gerekir. Bunun için azurecli dizinindeki dosya kullanılır.
+# Aşağıdaki kısım bir kez çalıştırılır.
 
-searchmongodb()
+# create database and collection
+# CreateDatabase()
+# ExportEmbeddings()  
+# --------------------------------------------
+
+# ReadEmbeddingsFromCosmoDB()  # nosql için  >700 maddeyi çekmesi epey vakit alıyor. mongodb içn biraz daha hızlı 
+# searchmongodb()
 # createmongodbvectorindex()
 # deletemongodbrecords()
 # query_items("1")
