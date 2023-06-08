@@ -6,6 +6,7 @@ import azure.cosmos.exceptions as exceptions
 from azure.cosmos.partition_key import PartitionKey
 import datetime
 import config
+import numpy as np
 import pymongo
 
 
@@ -150,24 +151,26 @@ def createvectorindex():
             ]
             }
     
-    db.createindexes(json)
+    db.create_indexes(json)
     return
 
 def createmongodbvectorindex():
     # Connect to the Cosmos DB using the Azure Cosmos Client
-    client = cosmos_client.CosmosClient(HOST, {'masterKey': MASTER_KEY}, user_agent="CosmosDBPythonQuickstart", user_agent_overwrite=True)
-    db = client.get_database_client(DATABASE_ID)
-    container = db.get_container_client("vectors")  
-    # Define the index to be created
-    index_name = "vectorSearchIndex"
-    index_key = [("vectorContent", "cosmosSearch")]
-    index_options = {
-        "kind": "vector-ivf",
-        "numLists": 100,
-        "similarity": "COS",
-        "dimensions": 3
-    }
-    container.createIndex(index_key, name=index_name, options=index_options)
+    client = pymongo.MongoClient('mongodb+srv://byucelyigit:burak123A@vectormongo.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000')
+    db = client.get_database('EnoctaEmbeddings')
+
+    index_spec = [
+    ('vectorContent', 'text')  # Specify the field and its type in a tuple
+    ]
+
+    # Create the index
+    db.Catalog.create_index(index_spec, name='vectorSearchIndex', cosmosSearchOptions={
+        'kind': 'vector-ivf',
+        'numLists': 100,
+        'similarity': 'COS',
+        'dimensions': 1536
+    })
+
     print("Index created successfully")
 
 def deletemongodbrecords():
@@ -189,7 +192,7 @@ def deletemongodbrecords():
 def CreateDatabase():
     client = pymongo.MongoClient('mongodb+srv://byucelyigit:burak123A@vectormongo.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000')
     db=client['EnoctaEmbeddings']
-    db.create_collection('vectors')
+    db.create_collection('Catalog')
 
 
 def ReadEmbeddings():
@@ -213,7 +216,7 @@ def CreateEmbedingItems(embeddingList):
     client = pymongo.MongoClient('mongodb+srv://byucelyigit:burak123A@vectormongo.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000')
     db = client.get_database('EnoctaEmbeddings')
     # collection = db['Catalog']
-    # limited_df = embeddingList.head(5)
+    # limited_df = embeddingList.head(2)
     for index, row in embeddingList.iterrows():
         # convert index into a string
         i = str(index+1)
@@ -224,8 +227,9 @@ def CreateEmbedingItems(embeddingList):
         print("item created")
 
 def EmbeddingItem(index, embedding):
+    embedding_array = np.array(eval(embedding))
     item = {'id' : index,
-            'vectorContent' : embedding}
+            'vectorContent' : embedding_array.tolist()}
     return item
 
 def searchmongodb():
@@ -268,10 +272,15 @@ def searchmongodb():
 # --------------------------------------------
 # aşağıdaki işlemlerden önce ilgili azure resource tanımlarının yapılmış olması gerekir. Bunun için azurecli dizinindeki dosya kullanılır.
 # Aşağıdaki kısım bir kez çalıştırılır.
-
+# 1.
+# azure cli komutları ile resource oluşturulur.
 # create database and collection
+# 2.
 # CreateDatabase()
+# 3.
 # ExportEmbeddings()  
+# 4. 
+createmongodbvectorindex()
 # --------------------------------------------
 
 # ReadEmbeddingsFromCosmoDB()  # nosql için  >700 maddeyi çekmesi epey vakit alıyor. mongodb içn biraz daha hızlı 
