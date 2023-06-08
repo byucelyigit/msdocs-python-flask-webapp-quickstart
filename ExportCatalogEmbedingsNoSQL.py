@@ -266,7 +266,7 @@ def searchmongodb():
     # Print the result
     print("Search resut:")
     for document in result:
-        print(document)
+        print(document['id'])
 
 
 # --------------------------------------------
@@ -280,11 +280,11 @@ def searchmongodb():
 # 3.
 # ExportEmbeddings()  
 # 4. 
-createmongodbvectorindex()
+# createmongodbvectorindex()
 # --------------------------------------------
 
 # ReadEmbeddingsFromCosmoDB()  # nosql için  >700 maddeyi çekmesi epey vakit alıyor. mongodb içn biraz daha hızlı 
-# searchmongodb()
+searchmongodb()
 # createmongodbvectorindex()
 # deletemongodbrecords()
 # query_items("1")
