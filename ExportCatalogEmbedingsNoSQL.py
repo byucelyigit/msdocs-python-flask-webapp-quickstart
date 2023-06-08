@@ -211,7 +211,7 @@ def ExportEmbeddings():
     embeddingList = ReadEmbeddings()
     CreateEmbedingItems(embeddingList) 
 
-# burada bir hata oluştu. vektör bilgisi rakam olarak değil de string olarak girilmiş oldu. bunu düzeltmek lazım. 
+#
 def CreateEmbedingItems(embeddingList):
     client = pymongo.MongoClient('mongodb+srv://byucelyigit:burak123A@vectormongo.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000')
     db = client.get_database('EnoctaEmbeddings')
