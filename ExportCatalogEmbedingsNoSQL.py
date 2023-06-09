@@ -8,6 +8,7 @@ import datetime
 import config
 import numpy as np
 import pymongo
+import openai
 
 
 # development amacı ile kaynakları oluşturma ve silme rutinlerini ekleyerek
@@ -189,6 +190,10 @@ def deletemongodbrecords():
     print("Deleted:", result.deleted_count)
     return
 
+
+
+
+
 def CreateDatabase():
     client = pymongo.MongoClient('mongodb+srv://byucelyigit:burak123A@vectormongo.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000')
     db=client['EnoctaEmbeddings']
@@ -269,6 +274,15 @@ def searchmongodb():
         print(document['id'])
 
 
+def GenerateQuestionEmbeddings():
+    openai.organization = "org-EZyyXoEzlXEW5aYgXath8T1K"
+    openai.api_key = "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"    
+    question = "Stres yönetimi ile ilgili bir eğitim lazım"
+    q_embeddings = openai.Embedding.create(input=question, engine='text-embedding-ada-002')['data'][0]['embedding']
+    
+
+
+
 # --------------------------------------------
 # aşağıdaki işlemlerden önce ilgili azure resource tanımlarının yapılmış olması gerekir. Bunun için azurecli dizinindeki dosya kullanılır.
 # Aşağıdaki kısım bir kez çalıştırılır.
@@ -276,15 +290,16 @@ def searchmongodb():
 # azure cli komutları ile resource oluşturulur.
 # create database and collection
 # 2.
-# CreateDatabase()
+# ----CreateDatabase()
 # 3.
-# ExportEmbeddings()  
+# ----ExportEmbeddings()  
 # 4. 
-# createmongodbvectorindex()
+# ----createmongodbvectorindex()
 # --------------------------------------------
 
 # ReadEmbeddingsFromCosmoDB()  # nosql için  >700 maddeyi çekmesi epey vakit alıyor. mongodb içn biraz daha hızlı 
-searchmongodb()
+# searchmongodb()
+GenerateQuestionEmbeddings()
 # createmongodbvectorindex()
 # deletemongodbrecords()
 # query_items("1")
