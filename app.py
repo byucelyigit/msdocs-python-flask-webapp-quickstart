@@ -1,6 +1,6 @@
 import os
 import config
-from question import GenerateQuestionEmbeddings
+from question import Answer
 
 
 from flask import (Flask, redirect, render_template, request,
@@ -50,7 +50,7 @@ def hello():
 
 
 def ReturnSomething():
-    r = GenerateQuestionEmbeddings()
+    r = Answer("yarın yönetime yapacağım sunumu nasıl daha iyi yapabilirim?")
     return r
 
 if __name__ == '__main__':

@@ -176,8 +176,8 @@ def LoadEnvVariables():
     # print(OPENAI_APIKEY)
 
 LoadEnvVariables()
-result = Answer("yarın yönetime yapacağım sunumu nasıl daha iyi yapabilirim?")
-print(result)
+# result = Answer("yarın yönetime yapacağım sunumu nasıl daha iyi yapabilirim?")
+# print(result)
 #deleteEmbeddings()
 # Init()
 # ReadEmbeddingsFromCosmoDB()  # nosql için  >700 maddeyi çekmesi epey vakit alıyor. mongodb içn biraz daha hızlı 
