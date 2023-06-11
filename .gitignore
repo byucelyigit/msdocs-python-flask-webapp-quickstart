@@ -6,6 +6,11 @@ __pycache__/
 # C extensions
 *.so
 
+#others
+embeddings_eng.csv
+katalog.csv
+
+
 # Distribution / packaging
 .Python
 build/
