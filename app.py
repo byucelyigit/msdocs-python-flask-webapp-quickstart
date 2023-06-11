@@ -19,7 +19,11 @@ test yaparken doğrudan lokal bilgisayarda python app.py demek mümkün.
 işler yolundaysa sunucu çalışıyor. 127.0.0.1:5000 diyerek loak uygulamayı çalıştırmak mümkün.
 sunucu tarafına göndermek için git pipeline kullanılıyor.
 Burada aksionları  git websayfasındaki actions ile görmek mümkün. 
-uygulama tarafındaki logları nasıl görüyoruz henüz tam çözemedim. 
+
+Uygulama tarafında azure üzerinde uygulamanın config sayfasına gidip env değişkenlerni
+tanımlamak gerekiyor.
+
+şu hali ile azure üzerinde çalışıyor sistem. ve 68 dönüyolr.
 
 """
 
