@@ -177,6 +177,7 @@ def LoadEnvVariables():
 
 LoadEnvVariables()
 # result = Answer("yarın yönetime yapacağım sunumu nasıl daha iyi yapabilirim?")
+# proje yöneticisiyim ama ürün yöneticisi olmak istiyorum. Hangi eğitimler uygun olur?
 # print(result)
 #deleteEmbeddings()
 # Init()
