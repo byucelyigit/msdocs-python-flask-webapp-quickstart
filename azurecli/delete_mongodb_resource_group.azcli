@@ -1,1 +1,1 @@
-y
+az group delete --name mongodbresourcegroup
