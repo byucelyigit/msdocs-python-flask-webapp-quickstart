@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 from dotenv import load_dotenv
 
+
 MONGO_CONNECTION_STRING = ""
 DATABASE_ID = "EnoctaSemanticSearch"
 COLLECTION_ID_EMBEDDINGS = "CatalogEmbeddings"
@@ -104,7 +105,7 @@ def CreateCourse():
                 'desc'   :row['desc']
             }
         db[COLLECTION_ID_CATALOG_DESC].insert_one(item)
-        print("item created")
+        print("Course record created")
     return
 
 
