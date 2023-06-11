@@ -141,7 +141,7 @@ def Answer(question):
     response = "------\n\nQuestion: " + question + "\n\n" + "Response: " +  response["choices"][0]["text"].strip() + "\n\nAşağıda bu konuyla ilgili eğitim önerileri yer almaktadır:\n\n" + course_header
     #print(response)  # + url) 
     """
-    print("\nHere are the course names:")
+    print("\nHere are the course names: ")
     print("---------------------------")
     if found_items:
         for item in found_items:
