@@ -88,7 +88,7 @@ def query_items(id):
 
     print('Item queried by id  {0}'.format(items[0].get("id")))
 
-def createmongodbvectorindex():
+def CreateEmbeddingsVectorIndex():
     # Connect to the Cosmos DB using the Azure Cosmos Client
     client = pymongo.MongoClient(MONGO_CONNECTION_STRING )
     db = client.get_database(DATABASE_ID)
@@ -98,7 +98,7 @@ def createmongodbvectorindex():
     ]
 
     # Create the index
-    db.Catalog.create_index(index_spec, name='vectorSearchIndex', cosmosSearchOptions={
+    db[COLLECTION_ID_EMBEDDINGS].create_index(index_spec, name='vectorSearchIndex', cosmosSearchOptions={
         'kind': 'vector-ivf',
         'numLists': 100,
         'similarity': 'COS',
@@ -125,7 +125,7 @@ def deletemongodbrecords():
 #-------------------------------------------------------------------------
 #yukarısı deneysel kodlar
 
-def CreateDatabase():
+def CreateEmbeddingsDatabase():
     client = pymongo.MongoClient(MONGO_CONNECTION_STRING )
     db=client[DATABASE_ID]
     db.create_collection(COLLECTION_ID_EMBEDDINGS)
@@ -160,7 +160,7 @@ def CreateEmbedingItems(embeddingList):
         print("index:") 
         print(i)
         embeding = EmbeddingItem(row['index'], row['embedding'])
-        db.Catalog.insert_one(embeding)
+        db[COLLECTION_ID_EMBEDDINGS].insert_one(embeding)
         print("item created")
 
 def EmbeddingItem(index, embedding):
@@ -203,30 +203,48 @@ def GenerateQuestionEmbeddings():
         }
     ]
     print("Searching...")
-    result = db.Catalog.aggregate(pipeline)
+    result = db[COLLECTION_ID_EMBEDDINGS].aggregate(pipeline)
     # Print the result
     print("Search resut:")
     for document in result:
         print(document['id'])
+
+    
+
+
 
 def deleteEmbeddings():
     print("Connect to mongodb")
     client = pymongo.MongoClient(MONGO_CONNECTION_STRING)
     # db = client.get_database('EnoctaEmbeddings')  
     client.drop_database(DATABASE_ID)
+    print("Database dropped")
 
 def CreateCourse():
     client = pymongo.MongoClient(MONGO_CONNECTION_STRING )
     db=client[DATABASE_ID]
     db.create_collection(COLLECTION_ID_CATALOG_DESC)
-    df_coursedata = pd.read_csv('')    
+    df_coursedata = pd.read_csv('katalog.csv', sep=';')    
     # write a code that show current directory
     print(os.getcwd())
     # write a code that list first four items of df_embeddings
-    print(df_embeddings.head())
+    print(df_coursedata.head())
     # write a code that show the number of rows and columns of df_embeddings
-    print(df_embeddings.shape)
-    return df_embeddings
+    print(df_coursedata.shape)
+
+    for index, row in df_coursedata.iterrows():
+        # convert index into a string
+        i = str(index+1)
+        print("index:") 
+        print(i)
+        item = {'id'     : row['index'],
+                'header' : row['header'],
+                'desc'   :row['desc']
+            }
+        db[COLLECTION_ID_CATALOG_DESC].insert_one(item)
+        print("item created")
+
+
 
 
     return
@@ -239,13 +257,13 @@ def Init():
     # azure cli komutları ile resource oluşturulur.
     # create database and collection
     # 2.
-    CreateDatabase()
+    CreateEmbeddingsDatabase()
     # 3.
     ExportEmbeddings()  
     # 4. 
-    createmongodbvectorindex()
+    CreateEmbeddingsVectorIndex()
     # --------------------------------------------
-    
+    CreateCourse()
 
 
 MONGO_CONNECTION_STRING = ""
@@ -272,7 +290,8 @@ def LoadEnvVariables():
     # print(OPENAI_APIKEY)
 
 LoadEnvVariables()
-# Init()
+#deleteEmbeddings()
+#Init()
 # ReadEmbeddingsFromCosmoDB()  # nosql için  >700 maddeyi çekmesi epey vakit alıyor. mongodb içn biraz daha hızlı 
 # searchmongodb()
 GenerateQuestionEmbeddings()
