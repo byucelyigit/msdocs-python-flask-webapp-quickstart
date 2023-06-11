@@ -1,5 +1,9 @@
 import os
 import config
+import azure.cosmos.documents as documents
+import azure.cosmos.cosmos_client as cosmos_client
+import azure.cosmos.exceptions as exceptions
+from azure.cosmos.partition_key import PartitionKey
 import pymongo
 import pandas as pd
 import numpy as np
