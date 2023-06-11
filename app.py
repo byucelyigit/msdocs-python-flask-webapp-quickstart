@@ -14,6 +14,15 @@ MASTER_KEY = config.settings['master_key']
 DATABASE_ID = config.settings['database_id']
 CONTAINER_ID = config.settings['container_id']
 
+"""
+test yaparken doğrudan lokal bilgisayarda python app.py demek mümkün.
+işler yolundaysa sunucu çalışıyor. 127.0.0.1:5000 diyerek loak uygulamayı çalıştırmak mümkün.
+sunucu tarafına göndermek için git pipeline kullanılıyor.
+Burada aksionları  git websayfasındaki actions ile görmek mümkün. 
+uygulama tarafındaki logları nasıl görüyoruz henüz tam çözemedim. 
+
+"""
+
 
 @app.route('/')
 def index():
@@ -37,8 +46,8 @@ def hello():
 
 
 def ReturnSomething():
-    GenerateQuestionEmbeddings()
-    return "result"
+    r = GenerateQuestionEmbeddings()
+    return r
 
 if __name__ == '__main__':
    app.run()
