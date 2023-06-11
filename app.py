@@ -1,6 +1,6 @@
 import os
 import config
-from ExportCatalogEmbedingsNoSQL import GenerateQuestionEmbeddings
+from question import GenerateQuestionEmbeddings
 
 
 from flask import (Flask, redirect, render_template, request,
