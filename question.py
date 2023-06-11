@@ -22,40 +22,6 @@ from dotenv import load_dotenv
 # azure kaynakları hazır olunca init.py ile DB oluşturma ve embeddings export işlemleri yapılır.
 
 
-def query_items(id):
-    print('\nQuerying for an  Item by Partition Key\n')
-
-    client = cosmos_client.CosmosClient(HOST, {'masterKey': MASTER_KEY}, user_agent="CosmosDBPythonQuickstart", user_agent_overwrite=True)
-    db = client.get_database_client(DATABASE_ID)
-    container = db.get_container_client(CONTAINER_ID)   
-
-    # Including the partition key value of account_number in the WHERE filter results in a more efficient query
-    items = list(container.query_items(
-        query="SELECT * FROM r WHERE r.id=@id_number",
-        parameters=[
-            { "name":"@id_number", "value": id }
-        ]
-    ))
-
-    print('Item queried by id  {0}'.format(items[0].get("id")))
-
-def CreateEmbeddingsVectorIndex():
-    # Connect to the Cosmos DB using the Azure Cosmos Client
-    client = pymongo.MongoClient(MONGO_CONNECTION_STRING )
-    db = client.get_database(DATABASE_ID)
-
-    index_spec = [
-    ('vectorContent', 'text')  # Specify the field and its type in a tuple
-    ]
-
-    # Create the index
-    db[COLLECTION_ID_EMBEDDINGS].create_index(index_spec, name='vectorSearchIndex', cosmosSearchOptions={
-        'kind': 'vector-ivf',
-        'numLists': 100,
-        'similarity': 'COS',
-        'dimensions': 1536
-    })
-    print("Index created successfully")
 
 def deletemongodbrecords():
     # Connect to the Cosmos DB using the Azure Cosmos Client
@@ -76,49 +42,6 @@ def deletemongodbrecords():
 #-------------------------------------------------------------------------
 #yukarısı deneysel kodlar
 
-def CreateEmbeddingsDatabase():
-    client = pymongo.MongoClient(MONGO_CONNECTION_STRING )
-    db=client[DATABASE_ID]
-    db.create_collection(COLLECTION_ID_EMBEDDINGS)
-
-def ReadEmbeddings():
-    df_embeddings = pd.read_csv('embeddings_eng.csv')    
-    # write a code that show current directory
-    print(os.getcwd())
-    # write a code that list first four items of df_embeddings
-    print(df_embeddings.head())
-    # write a code that show the number of rows and columns of df_embeddings
-    print(df_embeddings.shape)
-    return df_embeddings
-
-# aşağıdaki fonksiyonu  bir kez çalıştırmak lazım. 
-# embeddings csv dosyasındaki embeddings verilerini cosmodb'ye yazar.
-def ExportEmbeddings():
-    print("ExportEmbeddings")
-    embeddingList = ReadEmbeddings()
-    CreateEmbedingItems(embeddingList) 
-
-#
-def CreateEmbedingItems(embeddingList):
-    print("CreateEmbedingItems")
-    client = pymongo.MongoClient(MONGO_CONNECTION_STRING)
-    db = client.get_database(DATABASE_ID)
-    # collection = db['Catalog']
-    # limited_df = embeddingList.head(2)
-    for index, row in embeddingList.iterrows():
-        # convert index into a string
-        i = str(index+1)
-        print("index:") 
-        print(i)
-        embeding = EmbeddingItem(row['index'], row['embedding'])
-        db[COLLECTION_ID_EMBEDDINGS].insert_one(embeding)
-        print("item created")
-
-def EmbeddingItem(index, embedding):
-    embedding_array = np.array(eval(embedding))
-    item = {'id' : index,
-            'vectorContent' : embedding_array.tolist()}
-    return item
 
 def GenerateQuestionEmbeddings():
     # aşağıdaki ap_key bilgisinin gihub'a gönderilmiyor olması lazım. 
@@ -169,59 +92,54 @@ def deleteEmbeddings():
     client.drop_database(DATABASE_ID)
     print("Database dropped")
 
-def CreateCourse():
-    client = pymongo.MongoClient(MONGO_CONNECTION_STRING )
-    db=client[DATABASE_ID]
-    db.create_collection(COLLECTION_ID_CATALOG_DESC)
-    df_coursedata = pd.read_csv('katalog.csv', sep=';')    
-    # write a code that show current directory
-    print(os.getcwd())
-    # write a code that list first four items of df_embeddings
-    print(df_coursedata.head())
-    # write a code that show the number of rows and columns of df_embeddings
-    print(df_coursedata.shape)
-
-    for index, row in df_coursedata.iterrows():
-        # convert index into a string
-        i = str(index+1)
-        print("index:") 
-        print(i)
-        item = {'id'     : row['index'],
-                'header' : row['header'],
-                'desc'   :row['desc']
-            }
-        db[COLLECTION_ID_CATALOG_DESC].insert_one(item)
-        print("item created")
-    return
-
 # index listesi verilen kursların bilgilerini mongodb'den bulup df olarak döner.
-def Context(df_indexes):
+def Answer(question, df_indexes):
+    print("most related course search")
     client = pymongo.MongoClient(MONGO_CONNECTION_STRING )
     db=client[DATABASE_ID] 
-    items = list(db[COLLECTION_ID_CATALOG_DESC].query_items(
-    query="SELECT * FROM r WHERE r.id=@id_number",
-    parameters=[
-        { "name":"@id_number", "value": df_indexes[0] }
-    ]
-    ))
+    query = {"id": {"$in": df_indexes}}
+    cursor = db[COLLECTION_ID_CATALOG_DESC].find(query)
 
-    print('Item queried by id  {0}'.format(items[0].get("id"))) 
+    found_items = list(cursor)
 
-def Init():
-    # --------------------------------------------
-    # aşağıdaki işlemlerden önce ilgili azure resource tanımlarının yapılmış olması gerekir. Bunun için azurecli dizinindeki dosya kullanılır.
-    # Aşağıdaki kısım bir kez çalıştırılır.
-    # 1.
-    # azure cli komutları ile resource oluşturulur.
-    # create database and collection
-    # 2.
-    CreateEmbeddingsDatabase()
-    # 3.
-    ExportEmbeddings()  
-    # 4. 
-    CreateEmbeddingsVectorIndex()
-    # --------------------------------------------
-    CreateCourse()
+    desc =""
+    print("Related Courses:")
+    print("------------------------------")
+    if found_items:
+        for item in found_items:
+            print('Item queried by id: {0}'.format(item.get("header")))
+            desc = desc + item.get("desc")
+    else:
+        print('No items found.')
+    print("Question Context:")
+    print("-----------------------------------")
+    print(desc)
+    # desc bilgisi openAI'a soru ile birlikte gönderilir.
+
+    print("OpenAI Connection")
+    openai.organization = OPENAI_ORG_ID 
+    openai.api_key = OPENAI_APIKEY   
+
+    response = openai.Completion.create(
+                prompt=f"Soruya aşağıdaki içeriğe göre cevap ver. Eğer sorunun cevabı içerikte yer almıyorsa o zaman \"Sorunuza doğrudan cevap veremiyorum ama size çeşitli eğitim ve okuma başlığı önerebilirim.\" şeklinde cevap ver. \n\nİçerik: {desc}\n\n---\n\nSoru: {question}\nCevap:",
+                temperature=0,
+                max_tokens=250,
+                top_p=1,
+                frequency_penalty=0,
+                presence_penalty=0,
+                stop=None,
+                model="text-davinci-003"
+            )
+    response = "------\n\nQuestion: " + question + "\n\n" + "Response: " +  response["choices"][0]["text"].strip() 
+    print(response)  # + url) 
+    print("\nHere are the course names:")
+    print("---------------------------")
+    if found_items:
+        for item in found_items:
+            print("* " + item.get("header"))
+    return response
+
+
 
 
 MONGO_CONNECTION_STRING = ""
@@ -248,13 +166,13 @@ def LoadEnvVariables():
     # print(OPENAI_APIKEY)
 
 LoadEnvVariables()
-#result = Context([710, 68])
-#print(result)
+result = Answer("toplantıları daha verimli yönetmek mümkün mü?", [710, 68])
+print(result)
 #deleteEmbeddings()
 # Init()
 # ReadEmbeddingsFromCosmoDB()  # nosql için  >700 maddeyi çekmesi epey vakit alıyor. mongodb içn biraz daha hızlı 
 # searchmongodb()
-GenerateQuestionEmbeddings()
+# GenerateQuestionEmbeddings()
 # createmongodbvectorindex()
 # deletemongodbrecords()
 # query_items("1")
