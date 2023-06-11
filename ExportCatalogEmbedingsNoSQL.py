@@ -11,65 +11,15 @@ import openai
 from dotenv import load_dotenv
 
 
-# development amacı ile kaynakları oluşturma ve silme rutinlerini ekleyerek
-# maliyetleri süper azaltmak mümkün olabilir.
-# yarın buna bakmam laızm. 
-# prod tarafında tabibu çok mümkün olmayacaktır. 
-# Bu uygulama CosmosDB'ye veri ekleme işlemini gerçekleştirmektedir.
-# komut satırından bir kez çalıştırılır.
-# demelerde nosql vector verilerinin gönderilmesi ve alınması (özellikle alınması) konusunda çok yavaş kaldı.
+
 
 # https://learn.microsoft.com/en-us/azure/cosmos-db/mongodb/vcore/vector-search
 # yukarıdaki adresteki javascript komutları
 # mongodb üzerinde çalıştırılır.
-# bunun en kolay yolu şimdiye kadar bulduğum:
-# vscode mongodb plugini yapmak. bunun playground
-# fonskiyonunu kullanmak. 
-# azure mongodb arayüzünde verileri gösteren bir yer yok
-# yine mongodb plugin üzerinden verileri ve indexleri de görmek mümkün.
-# index oluşturma aşağıdaki şekidle yapılıyor. 
-# openai index embedingsleri 1536 boyutlu
-"""
-db.runCommand({
-  createIndexes: 'exampleCollection',
-  indexes: [
-    {
-      name: 'vectorSearchIndex',
-      key: {
-        "vectorContent": "cosmosSearch"
-      },
-      cosmosSearchOptions: {
-        kind: 'vector-ivf',
-        numLists: 100,
-        similarity: 'COS',
-        dimensions: 1536
-      }
-    }
-  ]
-});
+# ilk olarak azure_cli dizinindeki oluşturma cli komutları çalıştırılır. 
+# bu komutlar Azure tarafındaki ortamı hazırlar.
+# iş bitince yine aynı dizindeki resourceları kaldıran komut çalıştırılır.
 
-DB oluşturmak ve altında da koleksiyon oluşturmak için kullanılan kod.
-
-const database = 'EnoctaEmbeddings';
-const collection = 'Catalog';
-
-// Create a new database.
-use(database);
-
-// Create a new collection.
-db.createCollection(collection);
-
-
-"""
-
-
-settings = {
-    'host': os.environ.get('ACCOUNT_HOST', 'https://aiexperiment.documents.azure.com:443/'),
-    'master_key': os.environ.get('ACCOUNT_KEY', 'osGQ0NoqEDvY2gjfyn8fMeeA388AZzA1NVOiDxpDRSdrNnNJgg3bX90BsVrXf7FFlXZY9kkbc3N1HVx0HpU8VA=='),
-    'database_id': os.environ.get('COSMOS_DATABASE', 'samplemongodb'),
-    'container_id': os.environ.get('COSMOS_CONTAINER', 'vectors'),
-    'collection_id': os.environ.get('COSMOS_COLLECTION', 'exampleCollection'),
-}
 
 def query_items(id):
     print('\nQuerying for an  Item by Partition Key\n')
@@ -211,10 +161,6 @@ def GenerateQuestionEmbeddings():
         r = document['id']
     return r
 
-
-
-
-
 def deleteEmbeddings():
     print("Connect to mongodb")
     client = pymongo.MongoClient(MONGO_CONNECTION_STRING)
@@ -245,11 +191,20 @@ def CreateCourse():
             }
         db[COLLECTION_ID_CATALOG_DESC].insert_one(item)
         print("item created")
-
-
-
-
     return
+
+# index listesi verilen kursların bilgilerini mongodb'den bulup df olarak döner.
+def Context(df_indexes):
+    client = pymongo.MongoClient(MONGO_CONNECTION_STRING )
+    db=client[DATABASE_ID] 
+    items = list(db[COLLECTION_ID_CATALOG_DESC].query_items(
+    query="SELECT * FROM r WHERE r.id=@id_number",
+    parameters=[
+        { "name":"@id_number", "value": df_indexes[0] }
+    ]
+    ))
+
+    print('Item queried by id  {0}'.format(items[0].get("id"))) 
 
 def Init():
     # --------------------------------------------
@@ -291,9 +246,11 @@ def LoadEnvVariables():
     # print(OPENAI_ORG_ID)
     # print(OPENAI_APIKEY)
 
-LoadEnvVariables()
+#LoadEnvVariables()
+#result = Context([710, 68])
+#print(result)
 #deleteEmbeddings()
-#Init()
+Init()
 # ReadEmbeddingsFromCosmoDB()  # nosql için  >700 maddeyi çekmesi epey vakit alıyor. mongodb içn biraz daha hızlı 
 # searchmongodb()
 # GenerateQuestionEmbeddings()
