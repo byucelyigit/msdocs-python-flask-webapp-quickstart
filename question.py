@@ -43,7 +43,7 @@ def deletemongodbrecords():
 #yukarısı deneysel kodlar
 
 
-def GenerateQuestionEmbeddings():
+def GenerateQuestionEmbeddings(question):
     # aşağıdaki ap_key bilgisinin gihub'a gönderilmiyor olması lazım. 
     # ek olarak mongodb connection string gibi bilgilerin de gönderilmiyor olması lazım. 
     print("OpenAI Connection")
@@ -55,7 +55,7 @@ def GenerateQuestionEmbeddings():
 
     # aşağıdaki sorunun 710 ve 68 index üretmesi gerekir
     # 
-    question = "toplantıları daha verimli yönetmek mümkün mü?"  
+    # question = "toplantıları daha verimli yönetmek mümkün mü?"  
     q_embeddings = openai.Embedding.create(input=question, engine='text-embedding-ada-002')['data'][0]['embedding']
 
     print(q_embeddings[:2])
@@ -79,11 +79,12 @@ def GenerateQuestionEmbeddings():
     print("Searching...")
     result = db[COLLECTION_ID_EMBEDDINGS].aggregate(pipeline)
     # Print the result
-    print("Search resut:")
+    print("Search results:")
+    list = []
     for document in result:
         print(document['id'])
-        r = document['id']
-    return r
+        list.append(document['id'])
+    return list
 
 def deleteEmbeddings():
     print("Connect to mongodb")
@@ -93,21 +94,31 @@ def deleteEmbeddings():
     print("Database dropped")
 
 # index listesi verilen kursların bilgilerini mongodb'den bulup df olarak döner.
-def Answer(question, df_indexes):
-    print("most related course search")
+def Answer(question):
+    print("Most related course search")
+
+    # Convert list to DataFrame
+    results = GenerateQuestionEmbeddings(question)
+    df_indexes = pd.DataFrame(results)
+    print(df_indexes)
+
+    
+    print("Answer generation")
     client = pymongo.MongoClient(MONGO_CONNECTION_STRING )
     db=client[DATABASE_ID] 
-    query = {"id": {"$in": df_indexes}}
+    query = {"id": {"$in": results}}
     cursor = db[COLLECTION_ID_CATALOG_DESC].find(query)
 
     found_items = list(cursor)
 
     desc =""
+    course_header = ""
     print("Related Courses:")
     print("------------------------------")
     if found_items:
         for item in found_items:
-            print('Item queried by id: {0}'.format(item.get("header")))
+            # print('Item queried by id: {0}'.format(item.get("header")))
+            course_header = course_header + "* " + item.get("header") + "\n"
             desc = desc + item.get("desc")
     else:
         print('No items found.')
@@ -130,13 +141,15 @@ def Answer(question, df_indexes):
                 stop=None,
                 model="text-davinci-003"
             )
-    response = "------\n\nQuestion: " + question + "\n\n" + "Response: " +  response["choices"][0]["text"].strip() 
-    print(response)  # + url) 
+    response = "------\n\nQuestion: " + question + "\n\n" + "Response: " +  response["choices"][0]["text"].strip() + "\n\nAşağıda bu konuyla ilgili eğitim önerileri yer almaktadır:\n\n" + course_header
+    #print(response)  # + url) 
+    """
     print("\nHere are the course names:")
     print("---------------------------")
     if found_items:
         for item in found_items:
             print("* " + item.get("header"))
+    """
     return response
 
 
@@ -166,7 +179,7 @@ def LoadEnvVariables():
     # print(OPENAI_APIKEY)
 
 LoadEnvVariables()
-result = Answer("toplantıları daha verimli yönetmek mümkün mü?", [710, 68])
+result = Answer("toplantıları daha verimli yönetmek mümkün mü?")
 print(result)
 #deleteEmbeddings()
 # Init()
