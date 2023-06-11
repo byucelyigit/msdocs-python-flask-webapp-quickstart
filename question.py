@@ -99,9 +99,6 @@ def Answer(question):
 
     # Convert list to DataFrame
     results = GenerateQuestionEmbeddings(question)
-    df_indexes = pd.DataFrame(results)
-    print(df_indexes)
-
     
     print("Answer generation")
     client = pymongo.MongoClient(MONGO_CONNECTION_STRING )
@@ -179,7 +176,7 @@ def LoadEnvVariables():
     # print(OPENAI_APIKEY)
 
 LoadEnvVariables()
-result = Answer("toplantıları daha verimli yönetmek mümkün mü?")
+result = Answer("yarın yönetime yapacağım sunumu nasıl daha iyi yapabilirim?")
 print(result)
 #deleteEmbeddings()
 # Init()
