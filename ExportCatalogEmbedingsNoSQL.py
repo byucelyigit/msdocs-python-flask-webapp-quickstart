@@ -208,8 +208,10 @@ def GenerateQuestionEmbeddings():
     print("Search resut:")
     for document in result:
         print(document['id'])
+        r = document['id']
+    return r
 
-    
+
 
 
 
@@ -294,7 +296,7 @@ LoadEnvVariables()
 #Init()
 # ReadEmbeddingsFromCosmoDB()  # nosql için  >700 maddeyi çekmesi epey vakit alıyor. mongodb içn biraz daha hızlı 
 # searchmongodb()
-GenerateQuestionEmbeddings()
+# GenerateQuestionEmbeddings()
 # createmongodbvectorindex()
 # deletemongodbrecords()
 # query_items("1")
