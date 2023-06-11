@@ -1,5 +1,6 @@
 import os
 import config
+from ExportCatalogEmbedingsNoSQL import GenerateQuestionEmbeddings
 
 
 from flask import (Flask, redirect, render_template, request,
@@ -36,6 +37,7 @@ def hello():
 
 
 def ReturnSomething():
+    GenerateQuestionEmbeddings()
     return "result"
 
 if __name__ == '__main__':
