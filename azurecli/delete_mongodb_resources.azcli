@@ -1,1 +1,1 @@
-az group delete --name mongodbresourcegrouppyt
+az group delete --name mongodbresourcegroup
