@@ -50,6 +50,7 @@ def hello():
 
 
 def ReturnSomething(name):
+    # responselist = ['Sorunun kendisi buraya yazılır', 'Cevabın kendisi buraya yazılır', 'Eğitim1 başlık', 'Eğitim1 Açıklama', 'Eğitim2 Başlık','Eğitim 2 Açıklama']
     r = Answer(name)
     return r
 

@@ -138,7 +138,16 @@ def Answer(question):
                 stop=None,
                 model="text-davinci-003"
             )
-    response = "------\n\nQuestion: " + question + "\n\n" + "Response: " +  response["choices"][0]["text"].strip() + "\n\nAşağıda bu konuyla ilgili eğitim önerileri yer almaktadır:\n\n" + course_header
+    # response = "------\n\nQuestion: " + question + "\n\n" + "Response: " +  response["choices"][0]["text"].strip() + "\n\nAşağıda bu konuyla ilgili eğitim önerileri yer almaktadır:\n\n" + course_header
+
+    # aşağıdaki kısmın daha farklı sayıda öneri gibi durumlar için daha esnek kodlanması lazım. 
+    egitim1header = found_items[0]['header']
+    egitim2header = found_items[1]['header']
+    egitim1desc = found_items[0]['desc']
+    egitim2desc = found_items[1]['desc']
+    airesponse = response["choices"][0]["text"].strip()
+    result = [question, airesponse, egitim1header, egitim1desc, egitim2header, egitim2desc]
+
     #print(response)  # + url) 
     """
     print("\nHere are the course names: ")
@@ -147,7 +156,7 @@ def Answer(question):
         for item in found_items:
             print("* " + item.get("header"))
     """
-    return response
+    return result
 
 
 
@@ -178,6 +187,8 @@ def LoadEnvVariables():
 LoadEnvVariables()
 # result = Answer("yarın yönetime yapacağım sunumu nasıl daha iyi yapabilirim?")
 # proje yöneticisiyim ama ürün yöneticisi olmak istiyorum. Hangi eğitimler uygun olur?
+# ikna etmek öğrenilebilen bir beceri mi? <<- buna tuhaf bir cevap verdi.
+# bir insanı bir işi yapmaya ikna edebilmek için hangi eğitim alınmalıdır  <<- genel olarak ikna ile ilgili konular tam cevap veremiyor.
 # print(result)
 #deleteEmbeddings()
 # Init()
