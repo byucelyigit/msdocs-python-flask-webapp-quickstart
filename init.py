@@ -14,6 +14,7 @@ MONGO_CONNECTION_STRING = ""
 DATABASE_ID = "EnoctaSemanticSearch"
 COLLECTION_ID_EMBEDDINGS = "CatalogEmbeddings"
 COLLECTION_ID_CATALOG_DESC = "CatalogDesc"
+COLLECTION_ID_LOGS = "questionlogs"
 
 
 def LoadEnvVariables():
@@ -29,6 +30,7 @@ def CreateEmbeddingsDatabase():
     client = pymongo.MongoClient(MONGO_CONNECTION_STRING )
     db=client[DATABASE_ID]
     db.create_collection(COLLECTION_ID_EMBEDDINGS)
+    db.create_collection(COLLECTION_ID_LOGS)
 
 
 def ReadEmbeddings():
