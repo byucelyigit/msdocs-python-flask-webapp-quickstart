@@ -43,7 +43,7 @@ def deletemongodbrecords():
 #yukarısı deneysel kodlar
 
 
-def GenerateQuestionEmbeddings(question):
+def GenerateQuestionEmbeddings(db, question):
     # aşağıdaki ap_key bilgisinin gihub'a gönderilmiyor olması lazım. 
     # ek olarak mongodb connection string gibi bilgilerin de gönderilmiyor olması lazım. 
     print("OpenAI Connection")
@@ -59,10 +59,6 @@ def GenerateQuestionEmbeddings(question):
     q_embeddings = openai.Embedding.create(input=question, engine='text-embedding-ada-002')['data'][0]['embedding']
 
     print(q_embeddings[:2])
-
-    print("Connect to mongodb")
-    client = pymongo.MongoClient(MONGO_CONNECTION_STRING)
-    db = client.get_database(DATABASE_ID)    
 
     pipeline = [
         {
@@ -93,16 +89,31 @@ def deleteEmbeddings():
     client.drop_database(DATABASE_ID)
     print("Database dropped")
 
+
+#todo: add datetime stamp
+def QuestionLog(db, question, airesponse, egitim1header, egitim1desc, egitim2header, egitim2desc):
+    item = {'question' : question,
+            'airesponse' : airesponse,
+            'egitim1header' : egitim1header, 
+            'egitim1desc' : egitim1desc, 
+            'egitim2header' : egitim2header, 
+            'egitim2desc' : egitim2desc
+            }
+    db[COLLECTION_ID_LOGS].insert_one(item)
+    print("question log record created")
+
+
+
 # index listesi verilen kursların bilgilerini mongodb'den bulup df olarak döner.
 def Answer(question):
     print("Most related course search")
 
     # Convert list to DataFrame
-    results = GenerateQuestionEmbeddings(question)
     
     print("Answer generation")
     client = pymongo.MongoClient(MONGO_CONNECTION_STRING )
     db=client[DATABASE_ID] 
+    results = GenerateQuestionEmbeddings(db, question)    
     query = {"id": {"$in": results}}
     cursor = db[COLLECTION_ID_CATALOG_DESC].find(query)
 
@@ -147,7 +158,7 @@ def Answer(question):
     egitim2desc = found_items[1]['desc']
     airesponse = response["choices"][0]["text"].strip()
     result = [question, airesponse, egitim1header, egitim1desc, egitim2header, egitim2desc]
-
+    QuestionLog(db, question, airesponse, egitim1header, egitim1desc, egitim2header, egitim2desc)
     #print(response)  # + url) 
     """
     print("\nHere are the course names: ")
@@ -165,6 +176,7 @@ MONGO_CONNECTION_STRING = ""
 DATABASE_ID = "EnoctaSemanticSearch"
 COLLECTION_ID_EMBEDDINGS = "CatalogEmbeddings"
 COLLECTION_ID_CATALOG_DESC = "CatalogDesc"
+COLLECTION_ID_LOGS = "questionlogs"
 OPENAI_ORG_ID = ""
 OPENAI_APIKEY = ""
 
